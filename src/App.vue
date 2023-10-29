@@ -1,5 +1,5 @@
 <template>
-  <MapComponent msg="Welcome to Your Vue.js App" />
+  <MapComponent />
 </template>
 
 <script>
@@ -8,7 +8,7 @@ import MapComponent from './components/MapComponent.vue'
 export default {
   name: 'App',
   components: {
-    MapComponent
+    MapComponent,
   }
 }
 </script>
