@@ -10,8 +10,8 @@
                 Show Records</button>
         </div>
 
-        <!-- pagination -->
-        <div id="pagination" style="position:relative;z-index:1" v-if="showTable">
+        <!-- data table -->
+        <div id="data-table" style="position:relative;z-index:1" v-if="showTable">
             <table class="table">
                 <tbody>
                     <tr v-for="(record, index) in records" :key="record">
