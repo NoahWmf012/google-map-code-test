@@ -12,11 +12,12 @@
         </div>
 
         <!-- data table -->
-        <div id="data-table" style="position:relative;z-index:1" v-if="showTable">
+        <div id="data-table" style="position:relative;z-index:1" v-if="showTable && records.length > 0">
+            <TimeDisplay :place="place" />
             <table class="table">
                 <button :disabled="selectedData.length === 0" @click="removeData()">Delete</button>
                 <tbody>
-                    <tr v-for="(record, index) in filteredRecords" :key="index">
+                    <tr v-for="( record, index ) in  filteredRecords " :key="index">
                         <input v-model="selectedData" type="checkbox" :id="record.name" :value="record" />
                         <th scope="row">{{ (currentPage - 1) * rowsPerPage + index + 1 }}</th>
                         <td>{{ record.name }}</td>
@@ -28,7 +29,7 @@
                     <li class="page-item">
                         <a class="page-link" @click="previousPage" :disabled="currentPage === 1">Previous</a>
                     </li>
-                    <li v-for="index in totalPages" :key="index" class="page-item">
+                    <li v-for=" index  in  totalPages " :key="index" class="page-item">
                         <a class="page-link" @click="goToPage(index)">{{ index }}</a>
                     </li>
                     <li class="page-item">
@@ -46,9 +47,11 @@
 <script>
 import { geocodeAddress } from '../services/geocodingService';
 import { toRaw } from 'vue'; //extract target from proxy object
+import TimeDisplay from './ TimeDisplay.vue';
 
 export default {
     name: "MapComponent",
+    components: { TimeDisplay },
     data() {
         return {
             address: '',
@@ -61,7 +64,8 @@ export default {
             currentPage: 1,
             totalPages: 1,
             rowsPerPage: 10,
-            map: ""
+            map: "",
+            place: { lat: "", lng: "" },
         };
     },
     methods: {
@@ -69,6 +73,7 @@ export default {
             try {
                 this.geocodingResult = await geocodeAddress(this.address);
                 const { lat, lng } = this.geocodingResult.results[0].geometry.location;
+                this.place = { lat, lng }
                 this.fetchLocation(lat, lng, this.geocodingResult.results[0].formatted_address);
             } catch (error) {
                 alert(error);
@@ -125,7 +130,7 @@ export default {
         },
         goToPage(pageNum) {
             this.currentPage = pageNum;
-        }
+        },
     },
     watch: {
         selectedData(newValue, oldValue) {
