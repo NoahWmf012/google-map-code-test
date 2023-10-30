@@ -45,7 +45,7 @@
   
 <script>
 import { geocodeAddress } from '../services/geocodingService';
-import { toRaw } from 'vue';
+import { toRaw } from 'vue'; //extract target from proxy object
 
 export default {
     name: "MapComponent",
@@ -56,11 +56,12 @@ export default {
             showMap: false,
             records: [],
             markers: [],
+            markersArr: [],
             showTable: false,
             currentPage: 1,
             totalPages: 1,
             rowsPerPage: 10,
-            map: { location: "" }
+            map: ""
         };
     },
     methods: {
@@ -116,14 +117,16 @@ export default {
     },
     watch: {
         markers(newValue, oldValue) {
-            console.log(">>>", newValue, oldValue)
+            console.log(newValue, oldValue)
             const _map = toRaw(this.map)
             const _newValue = toRaw(newValue)
+            this.markersArr.map((m) => toRaw(m).setMap(null))
             for (var location in _newValue) {
-                new window.google.maps.Marker({
+                const _m = new window.google.maps.Marker({
                     position: new window.google.maps.LatLng(_newValue[location].latitude, _newValue[location].longitude),
                     map: _map,
                 });
+                this.markersArr.push(_m)
             }
         }
     },
