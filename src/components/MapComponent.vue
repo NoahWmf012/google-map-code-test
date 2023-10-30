@@ -13,11 +13,11 @@
 
         <!-- data table -->
         <div id="data-table" style="position:relative;z-index:1" v-if="showTable">
-            <p>{{ markers }}</p>
             <table class="table">
+                <button :disabled="selectedData.length === 0" @click="removeData()">Delete</button>
                 <tbody>
                     <tr v-for="(record, index) in filteredRecords" :key="index">
-                        <input v-model="markers" type="checkbox" :id="record.name" :value="record" />
+                        <input v-model="selectedData" type="checkbox" :id="record.name" :value="record" />
                         <th scope="row">{{ (currentPage - 1) * rowsPerPage + index + 1 }}</th>
                         <td>{{ record.name }}</td>
                     </tr>
@@ -55,8 +55,8 @@ export default {
             geocodingResult: null,
             showMap: false,
             records: [],
-            markers: [],
-            markersArr: [],
+            selectedData: [],
+            makers: [],
             showTable: false,
             currentPage: 1,
             totalPages: 1,
@@ -103,6 +103,18 @@ export default {
             this.totalPages = Math.ceil(this.records.length / this.rowsPerPage);
             this.map = map
         },
+        removeData() {
+            const names = new Set(this.selectedData.map(obj => obj.name))
+
+            for (let i = this.records.length - 1; i >= 0; i--) {
+                if (names.has(this.records[i].name)) {
+                    const _r = this.records.map((record) => toRaw(record))
+                    _r.splice(i, 1)
+                    this.records = _r;
+                    this.selectedData = [];
+                }
+            }
+        },
 
         // Pagination methods
         previousPage() {
@@ -116,17 +128,17 @@ export default {
         }
     },
     watch: {
-        markers(newValue, oldValue) {
+        selectedData(newValue, oldValue) {
             console.log(newValue, oldValue)
             const _map = toRaw(this.map)
             const _newValue = toRaw(newValue)
-            this.markersArr.map((m) => toRaw(m).setMap(null))
+            this.makers.map((m) => toRaw(m).setMap(null))
             for (var location in _newValue) {
                 const _m = new window.google.maps.Marker({
                     position: new window.google.maps.LatLng(_newValue[location].latitude, _newValue[location].longitude),
                     map: _map,
                 });
-                this.markersArr.push(_m)
+                this.makers.push(_m)
             }
         }
     },
