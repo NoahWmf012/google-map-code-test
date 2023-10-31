@@ -1,4 +1,4 @@
-# code-test
+# Google Map Application using VueJS
 
 ## Project setup
 ```
@@ -10,15 +10,5 @@ npm install
 npm run serve
 ```
 
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+### Preview
+![](https://github.com/NoahWmf012/google-map-code-test/assets/67308492/a90c98a7-4de9-485b-af48-ce7f4669b769)
