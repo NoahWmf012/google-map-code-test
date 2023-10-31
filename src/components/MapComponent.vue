@@ -1,46 +1,72 @@
 <template>
-    <button class="btn btn-primary" @click="fetchCurrentLocation">Let's start</button>
+    <button v-if="!showMap" class="btn btn-primary" @click="fetchCurrentLocation">Let's start</button>
     <div v-if="showMap">
         <!-- search bar -->
-        <div id="search-bar" style="position:relative;z-index:1">
-            <input type="text" placeholder="Enter your address" @keyup.enter="geocode" v-model="address"
-                ref="autocomplete" />
-            <button class="btn btn-primary" @click="geocode">GO</button>
-            <button class="btn btn-info" :disabled="records.length === 0" @click="showTable = !showTable">
-                {{ showTable ? "Hide Records" : "Show Records" }}
-            </button>
+        <div id="search-bar" class="position-absolute top-0 start-50 translate-middle-x" style="z-index:1">
+            <div class="input-group mb-3">
+                <input class="form-control" type="text" placeholder="Enter your address" @keyup.enter="geocode"
+                    v-model="address" ref="autocomplete" />
+                <button class="btn btn-primary" @click="geocode">GO</button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                    :disabled="records.length === 0" @click="showTable = !showTable">
+                    Show Records
+                </button>
+            </div>
         </div>
 
+        <!-- Date Time -->
+        <TimeDisplay v-if="place" :place="place" style="z-index:1" />
+
         <!-- data table -->
-        <div id="data-table" style="position:relative;z-index:1" v-if="showTable && records.length > 0">
-            <TimeDisplay :place="place" />
-            <table class="table">
-                <button :disabled="selectedData.length === 0" @click="removeData()">Delete</button>
-                <tbody>
-                    <tr v-for="( record, index ) in  filteredRecords " :key="index">
-                        <input v-model="selectedData" type="checkbox" :id="record.name" :value="record" />
-                        <th scope="row">{{ (currentPage - 1) * rowsPerPage + index + 1 }}</th>
-                        <td>{{ record.name }}</td>
-                    </tr>
-                </tbody>
-            </table>
-            <nav aria-label="Page navigation example">
-                <ul class="pagination">
-                    <li class="page-item">
-                        <a class="page-link" @click="previousPage" :disabled="currentPage === 1">Previous</a>
-                    </li>
-                    <li v-for=" index  in  totalPages " :key="index" class="page-item">
-                        <a class="page-link" @click="goToPage(index)">{{ index }}</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" @click="nextPage" :disabled="currentPage === totalPages">Next</a>
-                    </li>
-                </ul>
-            </nav>
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Records</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="data-table" class="table position-relative" style="z-index:1">
+                            <table class="w-100">
+                                <tbody>
+                                    <tr v-for="( record, index ) in  filteredRecords " :key="index">
+                                        <input v-model="selectedData" type="checkbox" :id="record.name" :value="record" />
+                                        <th scope="row">{{ (currentPage - 1) * rowsPerPage + index + 1 }}</th>
+                                        <td>{{ record.name }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="position-relative">
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination">
+                                        <li class="page-item p-0">
+                                            <button class="page-link" @click="previousPage"
+                                                :disabled="currentPage == 1">Previous</button>
+                                        </li>
+                                        <li v-for=" index  in  totalPages " :key="index" class="page-item p-0">
+                                            <button class="page-link" @click="goToPage(index)">{{ index }}</button>
+                                        </li>
+                                        <li class="page-item p-0">
+                                            <button class="page-link" @click="nextPage"
+                                                :disabled="currentPage == totalPages">Next</button>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" :disabled="selectedData.length === 0"
+                            @click="removeData()">Delete</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- google map -->
-        <section id="map" ref="map"></section>
+        <section id="map" ref="map" style="z-index:-1"></section>
     </div>
 </template>
   
@@ -65,10 +91,11 @@ export default {
             totalPages: 1,
             rowsPerPage: 10,
             map: "",
-            place: { lat: "", lng: "" },
+            place: null,
         };
     },
     methods: {
+        //Google Map API
         async geocode() {
             try {
                 this.geocodingResult = await geocodeAddress(this.address);
@@ -82,7 +109,11 @@ export default {
         fetchCurrentLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
-                    this.fetchLocation(position.coords.latitude, position.coords.longitude);
+                    // console.log("position: ", position)
+                    const lat = position.coords.latitude
+                    const lng = position.coords.longitude
+                    this.place = { lat, lng }
+                    this.fetchLocation(lat, lng);
                 });
                 this.showMap = true;
             } else {
@@ -90,7 +121,6 @@ export default {
             }
         },
         fetchLocation(latitude, longitude, name = "") {
-            // Show & center the Map based on latitude and longitude
             var map = new window.google.maps.Map(this.$refs["map"], {
                 zoom: 15,
                 center: new window.google.maps.LatLng(latitude, longitude),
@@ -104,10 +134,11 @@ export default {
             if (name !== undefined && name.length > 0) {
                 this.records.unshift({ name, latitude, longitude });
             }
-            // Update the total pages based on the number of records
             this.totalPages = Math.ceil(this.records.length / this.rowsPerPage);
             this.map = map
         },
+
+        //remove data and markers
         removeData() {
             const names = new Set(this.selectedData.map(obj => obj.name))
 
@@ -133,6 +164,7 @@ export default {
         },
     },
     watch: {
+        //add new marker whenever a data is selected
         selectedData(newValue, oldValue) {
             console.log(newValue, oldValue)
             const _map = toRaw(this.map)

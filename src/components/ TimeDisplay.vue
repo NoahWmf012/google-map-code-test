@@ -1,10 +1,12 @@
 <template>
-    <div>
-        <h2 v-if="loading">Loading...</h2>
-        <h2 v-else-if="error">{{ error }}</h2>
-        <div v-else>
-            <h2>Timezone: {{ timezone }}</h2>
-            <h2>Local Time: {{ localTime }}</h2>
+    <div class="position-relative">
+        <div class="position-absolute top-0 end-0 bg-dark bg-gradient text-white bg-opacity-50 p-2">
+            <h2 v-if="loading">Loading...</h2>
+            <h2 v-else-if="error">{{ error }}</h2>
+            <div v-else>
+                <h6>Timezone: {{ timezone }}</h6>
+                <h6>Local Time: {{ localTime }}</h6>
+            </div>
         </div>
     </div>
 </template>
